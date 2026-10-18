@@ -1,0 +1,13 @@
+
+[
+    {
+        "roll": "101",
+        "name": "Rahul",
+        "marks": 85.0
+    },
+    {
+        "roll": "102",
+        "name": "Aman",
+        "marks": 90.0
+    }
+]
