@@ -1,0 +1,7 @@
+ASSISTANT_NAME = "Jarvis"
+
+LANGUAGE = "en-IN"
+
+VOICE_RATE = 170
+
+DEBUG = True
