@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Management - Smart E-Commerce</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --sidebar-width: 260px; --primary: #0284c7; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #1e293b; margin: 0; }
+        .sidebar { width: var(--sidebar-width); background: #0f172a; position: fixed; top: 0; bottom: 0; left: 0; padding: 24px 16px; display: flex; flex-direction: column; }
+        .nav-link { color: #94a3b8; padding: 10px 14px; border-radius: 8px; display: flex; align-items: center; gap: 12px; text-decoration: none; font-weight: 500; margin-bottom: 4px; }
+        .nav-link:hover, .nav-link.active { color: #fff; background: #1e293b; }
+        .nav-link.active { background: var(--primary); }
+        .main-wrapper { margin-left: var(--sidebar-width); min-height: 100vh; }
+        .top-navbar { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 14px 28px; display: flex; justify-content: space-between; align-items: center; }
+        .card-table { background: #fff; border-radius: 14px; border: 1px solid #e2e8f0; overflow: hidden; }
+        @media (max-width: 992px) { .sidebar { display: none; } .main-wrapper { margin-left: 0; } }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="d-flex align-items-center gap-2 pb-3 mb-3 border-bottom border-secondary">
+            <i class="bi bi-shield-heart fs-3 text-info"></i>
+            <div>
+                <h5 class="m-0 text-white fw-bold">SmartCommerce</h5>
+                <small class="text-secondary" style="font-size:0.7rem;">HEALTH CHECK SYSTEM</small>
+            </div>
+        </div>
+        <ul class="nav flex-column mb-auto">
+            <li class="nav-item"><a href="{{ url_for('dashboard') }}" class="nav-link"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a></li>
+            <li class="nav-item"><a href="{{ url_for('products.list_products') }}" class="nav-link"><i class="bi bi-box-seam"></i><span>Products</span></a></li>
+            <li class="nav-item"><a href="{{ url_for('inventory.inventory_dashboard') }}" class="nav-link"><i class="bi bi-heart-pulse"></i><span>Inventory Health</span></a></li>
+            <li class="nav-item"><a href="{{ url_for('orders.list_orders') }}" class="nav-link"><i class="bi bi-cart3"></i><span>Orders</span></a></li>
+            <li class="nav-item"><a href="{{ url_for('customers.list_customers') }}" class="nav-link active"><i class="bi bi-people"></i><span>Customers</span></a></li>
+            <li class="nav-item"><a href="{{ url_for('payments.list_payments') }}" class="nav-link"><i class="bi bi-credit-card"></i><span>Payments</span></a></li>
+            <li class="nav-item mt-3"><small class="text-muted text-uppercase px-3 fw-bold" style="font-size:0.65rem;">Reports</small></li>
+            <li class="nav-item"><a href="{{ url_for('reports.sales_report') }}" class="nav-link"><i class="bi bi-graph-up-arrow"></i><span>Sales Report</span></a></li>
+        </ul>
+        <div class="pt-3 border-top border-secondary text-end">
+            <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-light"><i class="bi bi-box-arrow-right"></i> Logout</a>
+        </div>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="top-navbar">
+            <h5 class="fw-bold mb-0">Customer Profiles & Directory</h5>
+            <button class="btn btn-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+                <i class="bi bi-person-plus me-1"></i> Add Customer
+            </button>
+        </header>
+
+        <div class="container-fluid p-4">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Search Toolbar -->
+            <div class="card p-3 mb-4 border-0 shadow-sm rounded-3">
+                <form method="GET" action="{{ url_for('customers.list_customers') }}" class="row g-2 align-items-center">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" name="search" class="form-control border-start-0" placeholder="Search by name, email, phone, city..." value="{{ search_query }}">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-secondary w-100">Search</button>
+                    </div>
+                    {% if search_query %}
+                        <div class="col-md-2">
+                            <a href="{{ url_for('customers.list_customers') }}" class="btn btn-outline-secondary">Reset</a>
+                        </div>
+                    {% endif %}
+                    <div class="col-md text-end text-muted small">
+                        Total Customers: <strong>{{ total_customers }}</strong>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Customers Table -->
+            <div class="card-table shadow-sm">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Customer Name</th>
+                                <th>Contact Information</th>
+                                <th>Location</th>
+                                <th>Total Orders</th>
+                                <th>Total Spent</th>
+                                <th>Tier</th>
+                                <th>Joined</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in customers %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="avatar-circle bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width:36px; height:36px;">
+                                                {{ c.name[:1] }}
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">{{ c.name }}</div>
+                                                <small class="text-muted">ID: #{{ c.id }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div><i class="bi bi-envelope text-muted me-1"></i>{{ c.email }}</div>
+                                        <small class="text-muted"><i class="bi bi-telephone text-muted me-1"></i>{{ c.phone or 'N/A' }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border">{{ c.city or 'Not Specified' }}</span>
+                                        <small class="d-block text-muted text-truncate" style="max-width:200px;">{{ c.address or '' }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary rounded-pill px-3">{{ c.total_orders }} orders</span>
+                                    </td>
+                                    <td class="fw-bold text-success">
+                                        ₹{{ "{:,.2f}".format(c.total_spent) }}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info-subtle text-info border border-info-subtle">{{ c.customer_tier }}</span>
+                                    </td>
+                                    <td class="text-muted small">
+                                        {{ c.created_at.strftime('%d %b %Y') }}
+                                    </td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditCustomer('{{ c.id }}', '{{ c.name }}', '{{ c.email }}', '{{ c.phone or '' }}', '{{ c.address or '' }}', '{{ c.city or '' }}')">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <form action="{{ url_for('customers.delete_customer', customer_id=c.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete customer {{ c.name }}?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-4">No customers registered yet.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Footer -->
+                {% if pagination and pagination.pages > 1 %}
+                    <div class="p-3 border-top d-flex justify-content-between align-items-center bg-light">
+                        <small class="text-muted">Page <strong>{{ pagination.page }}</strong> of <strong>{{ pagination.pages }}</strong></small>
+                        <ul class="pagination pagination-sm mb-0">
+                            {% if pagination.has_prev %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('customers.list_customers', page=pagination.prev_num, search=search_query) }}">Previous</a>
+                                </li>
+                            {% endif %}
+                            {% for p in range(1, pagination.pages + 1) %}
+                                <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                                    <a class="page-link" href="{{ url_for('customers.list_customers', page=p, search=search_query) }}">{{ p }}</a>
+                                </li>
+                            {% endfor %}
+                            {% if pagination.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('customers.list_customers', page=pagination.next_num, search=search_query) }}">Next</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Customer Modal -->
+    <div class="modal fade" id="addCustomerModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ url_for('customers.add_customer') }}" method="POST">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold">Register New Customer</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Full Name *</label>
+                            <input type="text" name="name" class="form-control" required placeholder="e.g. Rahul Sharma">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Email Address *</label>
+                            <input type="email" name="email" class="form-control" required placeholder="name@example.com">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Phone Number</label>
+                            <input type="text" name="phone" class="form-control" placeholder="+91 9876543210">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">City</label>
+                            <input type="text" name="city" class="form-control" placeholder="Mumbai, Delhi...">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Street Address</label>
+                            <textarea name="address" class="form-control" rows="2" placeholder="House/Flat No, Area, Landmark..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary px-4">Save Customer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Customer Modal -->
+    <div class="modal fade" id="editCustomerModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="editCustomerForm" method="POST">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold">Edit Customer Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Full Name *</label>
+                            <input type="text" id="edit_cust_name" name="name" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Email Address *</label>
+                            <input type="email" id="edit_cust_email" name="email" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Phone Number</label>
+                            <input type="text" id="edit_cust_phone" name="phone" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">City</label>
+                            <input type="text" id="edit_cust_city" name="city" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Street Address</label>
+                            <textarea id="edit_cust_address" name="address" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary px-4">Update Details</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function openEditCustomer(id, name, email, phone, address, city) {
+            document.getElementById('editCustomerForm').action = "/customers/edit/" + id;
+            document.getElementById('edit_cust_name').value = name;
+            document.getElementById('edit_cust_email').value = email;
+            document.getElementById('edit_cust_phone').value = phone;
+            document.getElementById('edit_cust_address').value = address;
+            document.getElementById('edit_cust_city').value = city;
+            new bootstrap.Modal(document.getElementById('editCustomerModal')).show();
+        }
+    </script>
+</body>
+</html>

@@ -1,79 +1,62 @@
 # Password Generator in Python
 
 ## Project Description
-Password Generator is a simple Python project that generates random and strong passwords. Users can choose the password length and decide whether to include uppercase letters, numbers, and symbols.
+Password Generator is a clean, secure, and user-friendly Python project that generates strong, random passwords. It includes both a **modern Desktop GUI application** (with window, buttons, slider, and clipboard copy) and an interactive **Command-Line Interface (CLI)**.
 
 ## Features
-- Generate random passwords.
-- Choose password length from 8 to 128 characters.
-- Include uppercase letters.
-- Include numbers.
-- Include special symbols.
-- Use Python's secure `secrets` module.
-- Validate user input.
-
-## Technologies Used
-- Python
-- `secrets` module
-- `string` module
-- VS Code
+- **Modern Desktop GUI**:
+  - Clean card-based visual interface using Tkinter.
+  - Interactive password length slider (8 to 64 characters).
+  - Checkboxes for uppercase, lowercase, numbers, and symbols.
+  - One-click **Copy to Clipboard** button.
+  - Real-time password strength meter.
+  - Auto-centers window on launch.
+- **Cryptographically Secure**: Uses Python's built-in `secrets` module instead of `random`.
+- **Customizable Length**: Choose password length from 8 to 128 characters (default: 14).
+- **Guaranteed Inclusion**: Ensures at least one character from each selected character set is included.
+- **Password Strength Analyzer**: Displays whether the generated password is Weak, Medium, Strong, or Very Strong.
+- **Input Validation**: Gracefully handles invalid inputs and prevents empty character pools.
 
 ## Project Structure
 ```text
-Project_05_Password_Generator/
+Password_Generator/
 │
-├── main.py
-├── password_generator.py
-└── README.md
+├── gui.py                  # Graphical desktop application (Tkinter)
+├── main.py                 # Main launcher (allows selecting GUI or Terminal)
+├── password_generator.py   # Core logic for password generation & strength check
+└── README.md               # Documentation
 ```
 
-## Requirements
-- Python 3 installed on your computer.
-- Visual Studio Code (recommended).
-
-No external libraries are required.
-
 ## How to Run
-1. Download or clone the project.
-2. Open the project folder in VS Code.
-3. Open the terminal.
-4. Run the following command:
 
+### Method 1: Graphical Desktop App (Recommended)
+Open your terminal in the `Password_Generator` folder and run:
+```bash
+python gui.py
+```
+*Ya fir VS Code me [gui.py](gui.py) open karke top-right corner par **Play (▶️)** button dabayein.*
+
+Ek sundar window khul jayegi jahan aap:
+1. Slider se length adjust kar sakte hain.
+2. Character options check/uncheck kar sakte hain.
+3. **"Generate Password"** button par click karke turant naya password bana sakte hain.
+4. **"Copy"** button dabakar password copy kar sakte hain.
+
+---
+
+### Method 2: Main Launcher
 ```bash
 python main.py
 ```
+Isme aapse poocha jayega ki aap **Graphical Window** chalana chahte hain ya **Terminal Mode**. Seedha **Enter** dabane par GUI window khul jayegi!
 
-5. Enter the desired password length.
-6. Choose whether to include uppercase letters, numbers, and symbols.
-7. Copy the generated password and store it securely.
+---
 
-## Example Output
-```text
-===== PASSWORD GENERATOR =====
-Password ki length (minimum 8): 12
-Capital letters use karein? (y/n): y
-Numbers use karein? (y/n): y
-Symbols use karein? (y/n): y
-
-Your generated password is:
-[Generated password]
+### Method 3: Direct Terminal CLI Mode
+Agar terminal me text ke roop me password generate karna ho:
+```bash
+python main.py --cli
 ```
 
-The actual password will be different each time.
-
-## Learning Objectives
-- Understand Python functions.
-- Learn how to use modules.
-- Work with strings and character sets.
-- Use conditional statements and loops.
-- Handle invalid user input.
-- Learn basic secure password generation.
-
-## Future Improvements
-- Add a graphical user interface (GUI).
-- Add a copy-to-clipboard feature.
-- Add password strength information.
-- Allow users to save passwords securely.
-
 ## Security Note
-This project generates passwords but does not store or manage them. Never upload real passwords, API keys
+This project generates passwords locally on your machine and never stores, logs, or transmits them. Never share your real passwords, API keys, or private credentials with anyone or commit them to public repositories.

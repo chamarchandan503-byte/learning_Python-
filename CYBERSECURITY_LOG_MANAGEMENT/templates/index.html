@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Cybersecurity Operations Center (SOC)</title>
+    <!-- CSS Stylesheet links with fallback support -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="layout">
+
+    <!-- ====================================================================== -->
+    <!-- SIDEBAR NAVIGATION & QUICK ACTIONS                                     -->
+    <!-- ====================================================================== -->
+    <aside class="sidebar">
+        <div class="logo">
+            <span class="logo-shield">🛡️</span>
+            <div>
+                <span class="logo-title">CYBER DEFENSE</span>
+                <span class="logo-tag">SIEM &bull; SOC PORTAL</span>
+            </div>
+        </div>
+
+        <div class="nav-group">
+            <h3>Monitoring</h3>
+            <a href="#overview" class="nav-item active" onclick="setActiveNav(this)">
+                <span class="nav-icon">📊</span> Overview
+            </a>
+            <a href="#alerts" class="nav-item" onclick="setActiveNav(this)">
+                <span class="nav-icon">🚨</span> Incidents & Alerts
+                {% if alert_count > 0 %}
+                <span class="nav-badge alert">{{ alert_count }}</span>
+                {% endif %}
+            </a>
+            <a href="#logs" class="nav-item" onclick="setActiveNav(this)">
+                <span class="nav-icon">📜</span> Live Audit Logs
+            </a>
+        </div>
+
+        <div class="nav-group">
+            <h3>SOC Operations</h3>
+            <button class="btn-action primary" onclick="openNewLogModal()">
+                <span>➕</span> Ingest Event Log
+            </button>
+            <button class="btn-action scan" onclick="triggerThreatScan()">
+                <span>⚡</span> Run Threat Scan
+            </button>
+            <a href="/api/export/csv" class="btn-action secondary" download>
+                <span>📥</span> Export Audit CSV
+            </a>
+            <button class="btn-action outline" onclick="location.reload()">
+                <span>🔄</span> Refresh Portal
+            </button>
+        </div>
+
+        <div class="system-monitor-card">
+            <div class="monitor-header">
+                <span class="pulse-indicator"></span>
+                <strong>SIEM Active Defense</strong>
+            </div>
+            <div class="monitor-details">
+                <p>Port: <code>5000</code> &bull; Engine: <code>SQLite WAL</code></p>
+                <small id="clockLive">{{ current_time }}</small>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ====================================================================== -->
+    <!-- MAIN SOC DASHBOARD CONTENT                                             -->
+    <!-- ====================================================================== -->
+    <main class="main-content">
+
+        <!-- Top Header Bar -->
+        <header class="topbar">
+            <div>
+                <h1>Security Operations Center (SOC)</h1>
+                <p class="subtitle">Real-Time Threat Correlation & Telemetry Analysis Engine</p>
+            </div>
+
+            <div class="topbar-status">
+                <div class="posture-chip">
+                    <span class="posture-label">Security Posture:</span>
+                    <strong class="posture-value">{{ stats['security_score'] or 100 }}%</strong>
+                    <span class="posture-tag">{{ stats['threat_level'] or 'NORMAL' }}</span>
+                </div>
+                <div class="live-status-chip">
+                    <span class="pulse-ring"></span>
+                    <span>Monitoring Online</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Metrics Overview Section -->
+        <section class="cards" id="overview">
+            <div class="card info">
+                <div class="card-head">
+                    <span class="card-title">Total Security Events</span>
+                    <span class="card-glyph">📁</span>
+                </div>
+                <h2>{{ stats['total_events'] or 0 }}</h2>
+                <div class="card-foot">
+                    <span class="tag-success">✓ {{ stats['total_events'] - stats['failed_logins'] }} Authorized</span>
+                </div>
+            </div>
+
+            <div class="card danger">
+                <div class="card-head">
+                    <span class="card-title">Failed Logins</span>
+                    <span class="card-glyph">🔒</span>
+                </div>
+                <h2>{{ stats['failed_logins'] or 0 }}</h2>
+                <div class="card-foot">
+                    <span class="tag-danger">Authentication Failures</span>
+                </div>
+            </div>
+
+            <div class="card warning">
+                <div class="card-head">
+                    <span class="card-title">High & Critical Risks</span>
+                    <span class="card-glyph">⚡</span>
+                </div>
+                <h2>{{ stats['high_risk_events'] or 0 }}</h2>
+                <div class="card-foot">
+                    <span class="tag-warning">{{ stats['blocked_events'] or 0 }} Auto-Mitigated</span>
+                </div>
+            </div>
+
+            <div class="card alert">
+                <div class="card-head">
+                    <span class="card-title">Open Security Alerts</span>
+                    <span class="card-glyph">🚨</span>
+                </div>
+                <h2 id="openAlertCount">{{ alert_count }}</h2>
+                <div class="card-foot">
+                    <span class="tag-alert">Action Required</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================== -->
+        <!-- SECURITY ALERTS SECTION                                            -->
+        <!-- ================================================================== -->
+        <section class="section" id="alerts">
+            <div class="section-top">
+                <div>
+                    <h2>Correlated Security Incidents</h2>
+                    <p class="section-desc">Automated threat detections requiring security analyst investigation.</p>
+                </div>
+                <div class="section-actions">
+                    <button class="btn-sm secondary" onclick="resolveAllAlertsAjax()">Resolve All</button>
+                    <button class="btn-sm primary" onclick="triggerThreatScan()">Scan Threats</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table id="alertsTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;">Incident</th>
+                            <th style="width: 170px;">Threat Vector</th>
+                            <th style="width: 100px;">Severity</th>
+                            <th>Incident Intelligence</th>
+                            <th style="width: 100px;">Status</th>
+                            <th style="width: 160px;">Timestamp</th>
+                            <th style="width: 100px; text-align: center;">Triage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for alert in alerts %}
+                        <tr id="alert-row-{{ alert['id'] }}">
+                            <td><strong>#{{ alert['id'] }}</strong></td>
+                            <td><span class="vector-badge">{{ alert['alert_type'] }}</span></td>
+                            <td>
+                                <span class="severity-badge {{ alert['severity']|lower }}">
+                                    {{ alert['severity'] }}
+                                </span>
+                            </td>
+                            <td class="alert-message-cell">{{ alert['message'] }}</td>
+                            <td>
+                                <span class="status-badge {% if alert['alert_status'] == 'OPEN' %}open{% else %}resolved{% endif %}" id="status-badge-{{ alert['id'] }}">
+                                    {{ alert['alert_status'] }}
+                                </span>
+                            </td>
+                            <td class="timestamp-cell">{{ alert['created_at'][:19] }}</td>
+                            <td style="text-align: center;">
+                                {% if alert['alert_status'] == 'OPEN' %}
+                                <button class="btn-resolve" onclick="resolveAlertAjax({{ alert['id'] }})">
+                                    Resolve
+                                </button>
+                                {% else %}
+                                <span class="badge-closed">Closed</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                🛡️ No active security incidents detected. System is running securely.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ================================================================== -->
+        <!-- LIVE AUDIT LOGS SECTION                                            -->
+        <!-- ================================================================== -->
+        <section class="section" id="logs">
+            <div class="section-top">
+                <div>
+                    <h2>Live Security Event Telemetry</h2>
+                    <p class="section-desc">Audit trail of authenticated operations, access requests, and firewall blocks.</p>
+                </div>
+            </div>
+
+            <!-- Real-time Filter Bar -->
+            <div class="filter-toolbar">
+                <div class="search-input-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input
+                        type="text"
+                        id="logSearch"
+                        placeholder="Search IP, Username, Event Type, or Details..."
+                        onkeyup="filterSecurityLogs()"
+                    >
+                    <button class="btn-clear" onclick="clearLogSearch()">Clear</button>
+                </div>
+
+                <div class="filter-controls">
+                    <select id="severityFilter" onchange="filterSecurityLogs()">
+                        <option value="">All Severities</option>
+                        <option value="CRITICAL">Critical</option>
+                        <option value="HIGH">High</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="LOW">Low</option>
+                    </select>
+
+                    <select id="statusFilter" onchange="filterSecurityLogs()">
+                        <option value="">All Statuses</option>
+                        <option value="SUCCESS">Success</option>
+                        <option value="FAILED">Failed</option>
+                        <option value="BLOCKED">Blocked</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table id="securityLogsTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 160px;">Timestamp (UTC)</th>
+                            <th style="width: 140px;">Source IP</th>
+                            <th style="width: 130px;">User Account</th>
+                            <th style="width: 140px;">Event Type</th>
+                            <th style="width: 100px;">Status</th>
+                            <th style="width: 100px;">Severity</th>
+                            <th>Details & Telemetry</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr class="log-row" data-severity="{{ log['severity'] }}" data-status="{{ log['status'] }}">
+                            <td class="timestamp-cell">{{ log['event_time'][:19] if log['event_time'] else '' }}</td>
+                            <td><code class="ip-pill">{{ log['source_ip'] }}</code></td>
+                            <td><strong>{{ log['username'] or 'anonymous' }}</strong></td>
+                            <td><span class="event-pill">{{ log['event_type'] }}</span></td>
+                            <td>
+                                <span class="status-badge {% if log['status'] in ['FAILED', 'BLOCKED'] %}failed{% else %}success{% endif %}">
+                                    {{ log['status'] }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="severity-badge {{ log['severity']|lower }}">
+                                    {{ log['severity'] }}
+                                </span>
+                            </td>
+                            <td class="details-cell" title="{{ log['details'] }}">{{ log['details'] or '-' }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                No security logs recorded yet. Ingest events or seed the database to begin.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Enterprise Cybersecurity Log Management System &bull; SOC SIEM Engine</p>
+        </footer>
+
+    </main>
+</div>
+
+<!-- ====================================================================== -->
+<!-- MODAL: INGEST NEW SECURITY EVENT                                       -->
+<!-- ====================================================================== -->
+<div id="newLogModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-top">
+            <h3>Ingest Security Event</h3>
+            <button class="modal-close" onclick="closeNewLogModal()">&times;</button>
+        </div>
+        <form id="newLogForm" onsubmit="submitNewLog(event)">
+            <div class="form-field">
+                <label for="modalSourceIp">Source IP Address *</label>
+                <input type="text" id="modalSourceIp" required placeholder="192.168.1.100" value="192.168.1.100">
+            </div>
+
+            <div class="form-field">
+                <label for="modalUsername">Target / User Account</label>
+                <input type="text" id="modalUsername" placeholder="admin" value="admin">
+            </div>
+
+            <div class="form-grid">
+                <div class="form-field">
+                    <label for="modalEventType">Event Type *</label>
+                    <select id="modalEventType">
+                        <option value="LOGIN">LOGIN</option>
+                        <option value="SSH_LOGIN">SSH_LOGIN</option>
+                        <option value="SQL_INJECTION">SQL_INJECTION</option>
+                        <option value="PORT_SCAN">PORT_SCAN</option>
+                        <option value="FILE_ACCESS">FILE_ACCESS</option>
+                        <option value="PRIVILEGE_ESCALATION">PRIVILEGE_ESCALATION</option>
+                        <option value="COMMAND_INJECTION">COMMAND_INJECTION</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label for="modalStatus">Status *</label>
+                    <select id="modalStatus">
+                        <option value="SUCCESS">SUCCESS</option>
+                        <option value="FAILED">FAILED</option>
+                        <option value="BLOCKED">BLOCKED</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label for="modalSeverity">Severity *</label>
+                    <select id="modalSeverity">
+                        <option value="LOW">LOW</option>
+                        <option value="MEDIUM">MEDIUM</option>
+                        <option value="HIGH">HIGH</option>
+                        <option value="CRITICAL">CRITICAL</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-field">
+                <label for="modalDetails">Event Telemetry Details</label>
+                <textarea id="modalDetails" rows="3" placeholder="Telemetry details, payload parameters, audit trace..."></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-clear" onclick="closeNewLogModal()">Cancel</button>
+                <button type="submit" class="btn-action primary">Commit Event</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ====================================================================== -->
+<!-- TOAST NOTIFICATION CONTAINER                                           -->
+<!-- ====================================================================== -->
+<div id="toastContainer" class="toast-container"></div>
+
+<!-- JavaScript scripts with fallback support -->
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

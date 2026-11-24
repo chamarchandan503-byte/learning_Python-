@@ -1,13 +1,293 @@
-
 [
     {
-        "roll": "101",
+        "roll_number": "101",
         "name": "Rahul",
+        "email": "",
+        "phone": "",
+        "course": "Computer Science",
+        "semester": 1,
+        "subjects": {
+            "General Studies": {
+                "subject_name": "General Studies",
+                "marks_obtained": 85.0,
+                "max_marks": 100.0
+            }
+        },
+        "attendance": {
+            "total_classes": 100,
+            "attended_classes": 85
+        },
+        "fees": {
+            "total_fee": 50000.0,
+            "paid_amount": 50000.0
+        },
+        "status": "ACTIVE",
+        "created_at": "2026-11-24T13:24:33.606535",
+        "updated_at": "2026-11-24T13:24:33.606630",
+        "roll": "101",
         "marks": 85.0
     },
     {
-        "roll": "102",
+        "roll_number": "102",
         "name": "Aman",
+        "email": "",
+        "phone": "",
+        "course": "Computer Science",
+        "semester": 1,
+        "subjects": {
+            "General Studies": {
+                "subject_name": "General Studies",
+                "marks_obtained": 90.0,
+                "max_marks": 100.0
+            }
+        },
+        "attendance": {
+            "total_classes": 100,
+            "attended_classes": 85
+        },
+        "fees": {
+            "total_fee": 50000.0,
+            "paid_amount": 50000.0
+        },
+        "status": "ACTIVE",
+        "created_at": "2026-11-24T13:24:33.606732",
+        "updated_at": "2026-11-24T13:24:33.606741",
+        "roll": "102",
         "marks": 90.0
+    },
+    {
+        "roll_number": "2504650100008",
+        "name": "Chandan Rao",
+        "email": "chandan.rao@college.edu",
+        "phone": "9876543210",
+        "course": "B.Tech Computer Science",
+        "semester": 4,
+        "subjects": {
+            "Python Programming": {
+                "subject_name": "Python Programming",
+                "marks_obtained": 96.0,
+                "max_marks": 100.0
+            },
+            "Data Structures & Algorithms": {
+                "subject_name": "Data Structures & Algorithms",
+                "marks_obtained": 94.0,
+                "max_marks": 100.0
+            },
+            "Database Management Systems": {
+                "subject_name": "Database Management Systems",
+                "marks_obtained": 92.0,
+                "max_marks": 100.0
+            },
+            "Operating Systems": {
+                "subject_name": "Operating Systems",
+                "marks_obtained": 88.0,
+                "max_marks": 100.0
+            },
+            "Computer Networks": {
+                "subject_name": "Computer Networks",
+                "marks_obtained": 90.0,
+                "max_marks": 100.0
+            }
+        },
+        "attendance": {
+            "total_classes": 120,
+            "attended_classes": 115
+        },
+        "fees": {
+            "total_fee": 65000.0,
+            "paid_amount": 65000.0
+        },
+        "status": "ACTIVE",
+        "created_at": "2026-11-24T13:24:33.606838",
+        "updated_at": "2026-11-24T13:24:33.606847",
+        "roll": "2504650100008",
+        "marks": 92.0
+    },
+    {
+        "roll_number": "103",
+        "name": "Priya Kumari",
+        "email": "priya.k@college.edu",
+        "phone": "9834567893",
+        "course": "B.Tech Information Technology",
+        "semester": 4,
+        "subjects": {
+            "Python Programming": {
+                "subject_name": "Python Programming",
+                "marks_obtained": 88.0,
+                "max_marks": 100.0
+            },
+            "Data Structures & Algorithms": {
+                "subject_name": "Data Structures & Algorithms",
+                "marks_obtained": 86.0,
+                "max_marks": 100.0
+            },
+            "Database Management Systems": {
+                "subject_name": "Database Management Systems",
+                "marks_obtained": 93.0,
+                "max_marks": 100.0
+            },
+            "Web Technologies": {
+                "subject_name": "Web Technologies",
+                "marks_obtained": 95.0,
+                "max_marks": 100.0
+            },
+            "Computer Networks": {
+                "subject_name": "Computer Networks",
+                "marks_obtained": 89.0,
+                "max_marks": 100.0
+            }
+        },
+        "attendance": {
+            "total_classes": 120,
+            "attended_classes": 118
+        },
+        "fees": {
+            "total_fee": 65000.0,
+            "paid_amount": 65000.0
+        },
+        "status": "ACTIVE",
+        "created_at": "2026-11-24T13:24:33.606922",
+        "updated_at": "2026-11-24T13:24:33.606928",
+        "roll": "103",
+        "marks": 90.2
+    },
+    {
+        "roll_number": "104",
+        "name": "Neha Kumari",
+        "email": "neha.k@college.edu",
+        "phone": "9845678904",
+        "course": "B.Tech Computer Science",
+        "semester": 4,
+        "subjects": {
+            "Python Programming": {
+                "subject_name": "Python Programming",
+                "marks_obtained": 76.0,
+                "max_marks": 100.0
+            },
+            "Data Structures & Algorithms": {
+                "subject_name": "Data Structures & Algorithms",
+                "marks_obtained": 74.0,
+                "max_marks": 100.0
+            },
+            "Database Management Systems": {
+                "subject_name": "Database Management Systems",
+                "marks_obtained": 79.0,
+                "max_marks": 100.0
+            },
+            "Operating Systems": {
+                "subject_name": "Operating Systems",
+                "marks_obtained": 72.0,
+                "max_marks": 100.0
+            },
+            "Computer Networks": {
+                "subject_name": "Computer Networks",
+                "marks_obtained": 75.0,
+                "max_marks": 100.0
+            }
+        },
+        "attendance": {
+            "total_classes": 120,
+            "attended_classes": 82
+        },
+        "fees": {
+            "total_fee": 65000.0,
+            "paid_amount": 35000.0
+        },
+        "status": "ACTIVE",
+        "created_at": "2026-11-24T13:24:33.606946",
+        "updated_at": "2026-11-24T13:24:33.606952",
+        "roll": "104",
+        "marks": 75.2
+    },
+    {
+        "roll_number": "105",
+        "name": "Rohit Kumar",
+        "email": "rohit.k@college.edu",
+        "phone": "9856789015",
+        "course": "B.Tech Mechanical Engineering",
+        "semester": 4,
+        "subjects": {
+            "Thermodynamics": {
+                "subject_name": "Thermodynamics",
+                "marks_obtained": 68.0,
+                "max_marks": 100.0
+            },
+            "Fluid Mechanics": {
+                "subject_name": "Fluid Mechanics",
+                "marks_obtained": 65.0,
+                "max_marks": 100.0
+            },
+            "Machine Design": {
+                "subject_name": "Machine Design",
+                "marks_obtained": 70.0,
+                "max_marks": 100.0
+            },
+            "Manufacturing Tech": {
+                "subject_name": "Manufacturing Tech",
+                "marks_obtained": 64.0,
+                "max_marks": 100.0
+            },
+            "Applied Mathematics": {
+                "subject_name": "Applied Mathematics",
+                "marks_obtained": 72.0,
+                "max_marks": 100.0
+            }
+        },
+        "attendance": {
+            "total_classes": 120,
+            "attended_classes": 98
+        },
+        "fees": {
+            "total_fee": 60000.0,
+            "paid_amount": 60000.0
+        },
+        "status": "ACTIVE",
+        "created_at": "2026-11-24T13:24:33.606974",
+        "updated_at": "2026-11-24T13:24:33.606980",
+        "roll": "105",
+        "marks": 67.8
+    },
+    {
+        "roll_number": "106",
+        "name": "Anjali Sharma",
+        "email": "anjali.s@college.edu",
+        "phone": "9867890126",
+        "course": "Bachelor of Computer Applications",
+        "semester": 2,
+        "subjects": {
+            "C Programming": {
+                "subject_name": "C Programming",
+                "marks_obtained": 92.0,
+                "max_marks": 100.0
+            },
+            "Digital Electronics": {
+                "subject_name": "Digital Electronics",
+                "marks_obtained": 88.0,
+                "max_marks": 100.0
+            },
+            "Mathematics-II": {
+                "subject_name": "Mathematics-II",
+                "marks_obtained": 90.0,
+                "max_marks": 100.0
+            },
+            "Communication Skills": {
+                "subject_name": "Communication Skills",
+                "marks_obtained": 94.0,
+                "max_marks": 100.0
+            }
+        },
+        "attendance": {
+            "total_classes": 100,
+            "attended_classes": 96
+        },
+        "fees": {
+            "total_fee": 45000.0,
+            "paid_amount": 45000.0
+        },
+        "status": "ACTIVE",
+        "created_at": "2026-11-24T13:24:33.606996",
+        "updated_at": "2026-11-24T13:24:33.607002",
+        "roll": "106",
+        "marks": 91.0
     }
 ]

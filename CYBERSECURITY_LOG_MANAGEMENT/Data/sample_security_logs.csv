@@ -1,0 +1,14 @@
+event_time,source_ip,username,event_type,status,severity,details
+2026-11-23T10:00:15Z,192.168.1.10,admin,LOGIN,SUCCESS,LOW,SOC Lead administrator authenticated via Web SSO.
+2026-11-23T10:05:22Z,198.51.100.81,root,SSH_LOGIN,FAILED,HIGH,Failed SSH public key verification from rogue subnet.
+2026-11-23T10:06:10Z,198.51.100.81,root,SSH_LOGIN,FAILED,HIGH,Failed SSH password attempt 2.
+2026-11-23T10:07:01Z,198.51.100.81,root,SSH_LOGIN,FAILED,HIGH,Failed SSH password attempt 3.
+2026-11-23T10:07:45Z,198.51.100.81,root,SSH_LOGIN,FAILED,HIGH,Failed SSH password attempt 4.
+2026-11-23T10:08:12Z,198.51.100.81,root,SSH_LOGIN,FAILED,HIGH,Failed SSH password attempt 5 - Brute force threshold exceeded.
+2026-11-23T10:15:30Z,203.0.113.19,guest,SQL_INJECTION,BLOCKED,CRITICAL,WAF Signature 942100: SQLi pattern 'UNION SELECT 1,schema_name' intercepted.
+2026-11-23T10:22:40Z,192.168.1.45,sarah_finance,FILE_ACCESS,SUCCESS,LOW,Accessed encrypted ledger payroll_2026_nov.enc.
+2026-11-23T10:35:10Z,203.0.113.88,unknown,PORT_SCAN,BLOCKED,HIGH,Stealth SYN scan blocked across TCP ports 21 22 80 443 8080 3306.
+2026-11-23T10:48:55Z,10.0.0.95,alex_intern,PRIVILEGE_ESCALATION,FAILED,CRITICAL,Unsanctioned sudo execution attempted on /etc/shadow.
+2026-11-23T11:05:12Z,192.168.1.20,michael_dev,GIT_COMMIT,SUCCESS,LOW,Pushed signed commit to production repository branch.
+2026-11-23T11:20:00Z,203.0.113.150,anonymous,COMMAND_INJECTION,BLOCKED,CRITICAL,RCE attempt detected via POST payload ping?ip=127.0.0.1;cat /etc/passwd.
+2026-11-23T11:45:22Z,10.0.0.110,john_qa,PASSWORD_CHANGE,SUCCESS,MEDIUM,User rotated credentials in accordance with corporate 90-day policy.

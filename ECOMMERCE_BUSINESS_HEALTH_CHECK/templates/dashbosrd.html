@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Health Dashboard - Smart E-Commerce</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --primary-color: #0284c7;
+            --primary-dark: #0369a1;
+            --bg-light: #f8fafc;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-light);
+            color: #1e293b;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        .sidebar {
+            width: var(--sidebar-width);
+            background: #0f172a;
+            color: #f8fafc;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            padding: 24px 16px;
+        }
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #1e293b;
+            margin-bottom: 20px;
+        }
+        .brand-logo h5 {
+            margin: 0;
+            font-weight: 700;
+            color: #ffffff;
+            font-size: 1.15rem;
+        }
+        .nav-link {
+            color: #94a3b8;
+            padding: 10px 14px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #ffffff;
+            background-color: #1e293b;
+        }
+        .nav-link.active {
+            background-color: var(--primary-color);
+            color: #ffffff;
+        }
+        .main-wrapper {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .top-navbar {
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 14px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 900;
+        }
+        .stat-card {
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.06);
+        }
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+        .health-meter {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: #ffffff;
+            border-radius: 16px;
+            padding: 24px;
+        }
+        .card-table {
+            background: #ffffff;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+        .badge-status {
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-completed { background: #dcfce7; color: #15803d; }
+        .badge-pending { background: #fef9c3; color: #854d0e; }
+        .badge-processing { background: #e0f2fe; color: #0369a1; }
+        .badge-cancelled { background: #fee2e2; color: #b91c1c; }
+        @media (max-width: 992px) {
+            .sidebar { margin-left: calc(-1 * var(--sidebar-width)); }
+            .sidebar.show { margin-left: 0; }
+            .main-wrapper { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="brand-logo">
+            <i class="bi bi-shield-heart fs-3 text-info"></i>
+            <div>
+                <h5>SmartCommerce</h5>
+                <small class="text-secondary" style="font-size: 0.7rem; letter-spacing: 0.5px;">HEALTH CHECK SYSTEM</small>
+            </div>
+        </div>
+
+        <ul class="nav flex-column mb-auto">
+            <li class="nav-item">
+                <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('products.list_products') }}" class="nav-link {% if 'products' in request.endpoint %}active{% endif %}">
+                    <i class="bi bi-box-seam"></i>
+                    <span>Products</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('inventory.inventory_dashboard') }}" class="nav-link {% if 'inventory' in request.endpoint %}active{% endif %}">
+                    <i class="bi bi-heart-pulse"></i>
+                    <span>Inventory Health</span>
+                    {% if global_low_stock_count > 0 %}
+                        <span class="badge bg-danger rounded-pill ms-auto">{{ global_low_stock_count }}</span>
+                    {% endif %}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('orders.list_orders') }}" class="nav-link {% if 'orders' in request.endpoint %}active{% endif %}">
+                    <i class="bi bi-cart3"></i>
+                    <span>Orders</span>
+                    {% if global_pending_orders_count > 0 %}
+                        <span class="badge bg-warning text-dark rounded-pill ms-auto">{{ global_pending_orders_count }}</span>
+                    {% endif %}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('customers.list_customers') }}" class="nav-link {% if 'customers' in request.endpoint %}active{% endif %}">
+                    <i class="bi bi-people"></i>
+                    <span>Customers</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('payments.list_payments') }}" class="nav-link {% if 'payments' in request.endpoint %}active{% endif %}">
+                    <i class="bi bi-credit-card"></i>
+                    <span>Payments</span>
+                </a>
+            </li>
+            <li class="nav-item mt-3">
+                <small class="text-muted text-uppercase px-3 fw-bold" style="font-size:0.65rem;">Reports & Exports</small>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('reports.sales_report') }}" class="nav-link {% if 'reports.sales' in request.endpoint %}active{% endif %}">
+                    <i class="bi bi-graph-up-arrow"></i>
+                    <span>Sales Report</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('reports.export_csv') }}" class="nav-link">
+                    <i class="bi bi-file-earmark-spreadsheet"></i>
+                    <span>Export CSV</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="pt-3 border-top border-secondary">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="fw-semibold text-white small">{{ current_user.username if current_user.is_authenticated else 'Admin' }}</div>
+                    <small class="text-secondary" style="font-size: 0.75rem;">{{ current_user.role if current_user.is_authenticated else 'Administrator' }}</small>
+                </div>
+                <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-light" title="Logout">
+                    <i class="bi bi-box-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-wrapper">
+        <header class="top-navbar">
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-light d-lg-none" onclick="document.getElementById('sidebar').classList.toggle('show')">
+                    <i class="bi bi-list fs-5"></i>
+                </button>
+                <h5 class="mb-0 fw-bold">Executive Business Health Check</h5>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-success-subtle text-success border border-success-subtle py-2 px-3 rounded-pill fw-semibold">
+                    <i class="bi bi-circle-fill me-1" style="font-size: 8px;"></i> System Live & Healthy
+                </span>
+                <a href="{{ url_for('orders.list_orders') }}" class="btn btn-primary btn-sm rounded-pill px-3">
+                    <i class="bi bi-plus-circle me-1"></i> New Order
+                </a>
+            </div>
+        </header>
+
+        <div class="container-fluid p-4">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Business Health Check Banner -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-8">
+                    <div class="health-meter shadow-sm h-100 d-flex flex-column justify-content-between">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="badge bg-white text-primary fw-bold mb-2">HEALTH INDEX</span>
+                                <h3 class="fw-bold mb-1">Business Health Score: {{ health_score }} / 100</h3>
+                                <p class="mb-0 text-white-50">
+                                    {% if health_score >= 80 %}
+                                        Excellent operational status. Inventory and order fulfillment are performing smoothly.
+                                    {% elif health_score >= 60 %}
+                                        Moderate performance. Attention recommended for low inventory items.
+                                    {% else %}
+                                        Critical action required. Stock shortages or order delays detected.
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="text-end">
+                                <span class="display-5 fw-bold">{{ health_score }}%</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <div class="d-flex justify-content-between small text-white-50 mb-1">
+                                <span>Health Status Indicator</span>
+                                <span>{{ healthy_count }} Healthy / {{ low_stock_count }} Low Stock / {{ out_of_stock_count }} Out of Stock</span>
+                            </div>
+                            <div class="progress" style="height: 10px; background-color: rgba(255,255,255,0.25);">
+                                <div class="progress-bar bg-white" role="progressbar" style="width: {{ health_score }}%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="stat-card h-100 d-flex flex-column justify-content-between">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-muted mb-0">Inventory Health Alerts</h6>
+                            <i class="bi bi-bell text-danger fs-5"></i>
+                        </div>
+                        <div>
+                            {% if out_of_stock_count > 0 %}
+                                <div class="alert alert-danger py-2 px-3 small d-flex align-items-center gap-2 mb-2">
+                                    <i class="bi bi-exclamation-octagon-fill"></i>
+                                    <strong>{{ out_of_stock_count }} Products</strong> are out of stock!
+                                </div>
+                            {% endif %}
+                            {% if low_stock_count > 0 %}
+                                <div class="alert alert-warning py-2 px-3 small d-flex align-items-center gap-2 mb-0">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                    <strong>{{ low_stock_count }} Products</strong> reached minimum stock level.
+                                </div>
+                            {% endif %}
+                            {% if out_of_stock_count == 0 and low_stock_count == 0 %}
+                                <div class="alert alert-success py-2 px-3 small d-flex align-items-center gap-2 mb-0">
+                                    <i class="bi bi-check-circle-fill"></i>
+                                    All inventory items are healthy and well-stocked.
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="mt-3">
+                            <a href="{{ url_for('inventory.inventory_dashboard') }}" class="btn btn-outline-danger btn-sm w-100">
+                                Manage Inventory Alerts &rarr;
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Metric Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <small class="text-muted text-uppercase fw-bold">Total Revenue</small>
+                                <h3 class="fw-bold mb-0 mt-1">₹{{ "{:,.2f}".format(total_revenue) }}</h3>
+                            </div>
+                            <div class="stat-icon bg-success-subtle text-success">
+                                <i class="bi bi-currency-rupee"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <small class="text-muted text-uppercase fw-bold">Total Orders</small>
+                                <h3 class="fw-bold mb-0 mt-1">{{ total_orders }}</h3>
+                            </div>
+                            <div class="stat-icon bg-primary-subtle text-primary">
+                                <i class="bi bi-bag-check"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <small class="text-muted text-uppercase fw-bold">Total Customers</small>
+                                <h3 class="fw-bold mb-0 mt-1">{{ total_customers }}</h3>
+                            </div>
+                            <div class="stat-icon bg-info-subtle text-info">
+                                <i class="bi bi-people"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <small class="text-muted text-uppercase fw-bold">Total Products</small>
+                                <h3 class="fw-bold mb-0 mt-1">{{ total_products }}</h3>
+                            </div>
+                            <div class="stat-icon bg-warning-subtle text-warning">
+                                <i class="bi bi-boxes"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Realtime Charts Section -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-8">
+                    <div class="stat-card">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0">Monthly Revenue Analytics</h6>
+                            <span class="badge bg-light text-secondary">Past 6 Months</span>
+                        </div>
+                        <div style="height: 280px;">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="stat-card">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0">Sales by Category</h6>
+                            <i class="bi bi-pie-chart text-muted"></i>
+                        </div>
+                        <div style="height: 280px;" class="d-flex align-items-center justify-content-center">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Orders and Recent Payments Tables -->
+            <div class="row g-4">
+                <div class="col-lg-7">
+                    <div class="card-table shadow-sm">
+                        <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-white">
+                            <h6 class="fw-bold mb-0">Recent Orders</h6>
+                            <a href="{{ url_for('orders.list_orders') }}" class="btn btn-sm btn-link text-decoration-none">View All &rarr;</a>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light small">
+                                    <tr>
+                                        <th>Order #</th>
+                                        <th>Customer</th>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for o in recent_orders %}
+                                        <tr>
+                                            <td class="fw-semibold"><code>{{ o.order_number }}</code></td>
+                                            <td>{{ o.customer.name }}</td>
+                                            <td class="text-muted small">{{ o.order_date.strftime('%d %b %Y') }}</td>
+                                            <td class="fw-bold">₹{{ "{:,.2f}".format(o.total_amount) }}</td>
+                                            <td>
+                                                <span class="badge-status badge-{{ o.status|lower }}">{{ o.status }}</span>
+                                            </td>
+                                        </tr>
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted py-3">No orders found.</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="card-table shadow-sm">
+                        <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-white">
+                            <h6 class="fw-bold mb-0">Recent Transactions</h6>
+                            <a href="{{ url_for('payments.list_payments') }}" class="btn btn-sm btn-link text-decoration-none">View All &rarr;</a>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light small">
+                                    <tr>
+                                        <th>Txn ID</th>
+                                        <th>Method</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for p in recent_payments %}
+                                        <tr>
+                                            <td><code>{{ p.transaction_id }}</code></td>
+                                            <td>
+                                                <span class="badge bg-secondary-subtle text-dark">{{ p.payment_method }}</span>
+                                            </td>
+                                            <td class="fw-bold text-success">+₹{{ "{:,.2f}".format(p.amount) }}</td>
+                                            <td>
+                                                <span class="badge bg-success-subtle text-success">{{ p.payment_status }}</span>
+                                            </td>
+                                        </tr>
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted py-3">No transactions recorded.</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        fetch("{{ url_for('reports.api_analytics') }}")
+            .then(res => res.json())
+            .then(data => {
+                // Monthly Revenue Line Chart
+                const revCtx = document.getElementById('revenueChart').getContext('2d');
+                new Chart(revCtx, {
+                    type: 'line',
+                    data: {
+                        labels: data.monthly_labels,
+                        datasets: [{
+                            label: 'Revenue (₹)',
+                            data: data.monthly_revenue,
+                            borderColor: '#0284c7',
+                            backgroundColor: 'rgba(2, 132, 199, 0.1)',
+                            fill: true,
+                            tension: 0.35,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#0284c7'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+
+                // Category Doughnut Chart
+                const catCtx = document.getElementById('categoryChart').getContext('2d');
+                new Chart(catCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.category_labels.length ? data.category_labels : ['General'],
+                        datasets: [{
+                            data: data.category_values.length ? data.category_values : [1],
+                            backgroundColor: ['#0284c7', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+            })
+            .catch(err => console.error("Error loading analytics:", err));
+    </script>
+</body>
+</html>
